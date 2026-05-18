@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   header: {
-    marginBottom: theme.spacing(5),
+    marginBottom: theme.spacing(4),
   },
   title: {
     fontSize: theme.typography.sizes.h1,

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, Alert, ScrollView, Image } from 'react-native';
 import { theme } from '../utils/theme';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
@@ -46,10 +46,14 @@ export const Login = ({ navigation }: any) => {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.brandingContainer}>
+          <Image source={require('../../assets/icon.png')} style={styles.logo} />
+          <Text style={styles.appName}>SmartResume AI</Text>
+        </View>
+
         <View style={styles.header}>
           <Text style={styles.title}>
-            {isSignUp ? 'Join ' : 'Welcome to '}
-            <Text style={styles.accent}>SmartResume AI</Text>
+            {isSignUp ? 'Create Account' : 'Welcome Back'}
           </Text>
           <Text style={styles.subtitle}>
             {isSignUp ? 'Create an account to start building.' : 'Sign in to access your resumes.'}
@@ -115,8 +119,25 @@ const styles = StyleSheet.create({
     padding: theme.spacing(3),
     justifyContent: 'center',
   },
+  brandingContainer: {
+    alignItems: 'center',
+    marginTop: theme.spacing(4),
+    marginBottom: theme.spacing(3),
+  },
+  logo: {
+    width: 140,
+    height: 140,
+    borderRadius: 32,
+    marginBottom: theme.spacing(1.5),
+  },
+  appName: {
+    fontSize: theme.typography.sizes.h2,
+    color: theme.colors.text,
+    fontFamily: theme.typography.fonts.bold,
+    fontWeight: 'bold',
+  },
   header: {
-    marginBottom: theme.spacing(5),
+    marginBottom: theme.spacing(4),
   },
   title: {
     fontSize: theme.typography.sizes.h1,

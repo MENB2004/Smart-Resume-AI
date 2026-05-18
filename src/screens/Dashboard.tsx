@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, RefreshControl, Image } from 'react-native';
 import { Button } from '../components/Button';
 import { supabase } from '../services/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -123,9 +123,12 @@ export const Dashboard = ({ navigation }: any) => {
         }
       >
         <View style={styles.header}>
-          <Text style={styles.title}>Dashboard</Text>
+          <View style={styles.brandRow}>
+            <Image source={require('../../assets/icon.png')} style={styles.headerLogo} />
+            <Text style={styles.headerAppName}>SmartResume AI</Text>
+          </View>
           <TouchableOpacity onPress={toggleTheme} style={styles.themeToggleBtn}>
-            <Ionicons name={isDarkMode ? "sunny" : "moon"} size={24} color={theme.colors.primary} />
+            <Ionicons name={isDarkMode ? "sunny" : "moon"} size={22} color={theme.colors.primary} />
           </TouchableOpacity>
         </View>
 
@@ -237,11 +240,21 @@ const getStyles = (theme: any) => StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  title: {
-    fontSize: theme.typography.sizes.h2,
+  brandRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerLogo: {
+    width: 44,
+    height: 44,
+    borderRadius: 10,
+    marginRight: theme.spacing(1),
+  },
+  headerAppName: {
+    fontSize: theme.typography.sizes.h3,
     color: theme.colors.text,
-    fontWeight: 'bold',
     fontFamily: theme.typography.fonts.bold,
+    fontWeight: 'bold',
   },
   themeToggleBtn: {
     padding: theme.spacing(1),

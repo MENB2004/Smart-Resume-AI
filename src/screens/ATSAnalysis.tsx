@@ -1,4 +1,3 @@
-import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Dimensions, RefreshControl } from 'react-native';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
@@ -101,6 +100,8 @@ export const ATSAnalysis = ({ route, navigation }: any) => {
         />
       }
     >
+
+
       <View style={styles.header}>
         <Text style={styles.title}>ATS Analysis</Text>
         <Text style={styles.subtitle}>For: {resume.title}</Text>
@@ -198,6 +199,7 @@ const getStyles = (theme: any) => StyleSheet.create({
     marginTop: theme.spacing(2),
     fontSize: theme.typography.sizes.body,
   },
+
   header: {
     marginBottom: theme.spacing(4),
   },

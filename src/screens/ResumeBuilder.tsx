@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Text, KeyboardAvoidingView, Platform } from 'react-native';
-import { useTheme } from '../context/ThemeContext';
-import { Button } from '../components/Button';
-import { PersonalInfoForm } from '../components/forms/PersonalInfoForm';
-import { EducationSkillsForm } from '../components/forms/EducationSkillsForm';
-import { ExperienceProjectsForm } from '../components/forms/ExperienceProjectsForm';
-import { AdditionalInfoForm } from '../components/forms/AdditionalInfoForm';
-import { Resume } from '../types/resume';
+import { useTheme } from './../context/ThemeContext';
+import { Button } from './../components/Button';
+import { PersonalInfoForm } from './../components/forms/PersonalInfoForm';
+import { EducationSkillsForm } from './../components/forms/EducationSkillsForm';
+import { ExperienceProjectsForm } from './../components/forms/ExperienceProjectsForm';
+import { AdditionalInfoForm } from './../components/forms/AdditionalInfoForm';
+import { Resume } from './../types/resume';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from './../context/AuthContext';
 
 const initialResumeState: Resume = {
   id: '',
@@ -228,6 +228,7 @@ const getStyles = (theme: any) => StyleSheet.create({
     borderBottomColor: theme.colors.border,
     backgroundColor: theme.colors.surface,
   },
+
   title: {
     fontSize: theme.typography.sizes.h2,
     color: theme.colors.text,

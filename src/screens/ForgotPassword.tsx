@@ -54,7 +54,7 @@ export const ForgotPassword = ({ navigation }: any) => {
           <Button
             title="Send Reset Link"
             onPress={handleReset}
-            loading={loading}
+            isLoading={loading}
             style={styles.mainButton}
           />
           

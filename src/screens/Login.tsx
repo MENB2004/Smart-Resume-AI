@@ -85,7 +85,7 @@ export const Login = ({ navigation }: any) => {
           <Button
             title={isSignUp ? 'Sign Up' : 'Log In'}
             onPress={handleAuth}
-            loading={loading}
+            isLoading={loading}
             style={styles.mainButton}
           />
         </View>

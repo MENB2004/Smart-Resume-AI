@@ -1,13 +1,16 @@
-import React from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { View, StyleSheet, Text, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Platform } from 'react-native';
 import { Input } from '../Input';
 import { Button } from '../Button';
 import { useTheme } from '../../context/ThemeContext';
 import { Resume } from '../../types/resume';
+import { aiService } from '../../services/aiService';
+import { Ionicons } from '@expo/vector-icons';
 
 interface Props {
   education: Resume['education'];
   skills: Resume['skills'];
+  targetRole?: string;
   onChangeEducation: (data: Resume['education']) => void;
   onChangeSkills: (data: Resume['skills']) => void;
 }
@@ -15,11 +18,41 @@ interface Props {
 export const EducationSkillsForm: React.FC<Props> = ({ 
   education, 
   skills, 
+  targetRole,
   onChangeEducation, 
   onChangeSkills 
 }) => {
   const { theme } = useTheme();
   const styles = getStyles(theme);
+  const [loadingSkills, setLoadingSkills] = useState<Record<string, boolean>>({});
+
+  const handleSuggestSkills = async (category: string, existingItems: string[]) => {
+    if (!targetRole) {
+      Alert.alert('Role Required', 'Please enter a target role in the Personal Info step first.');
+      return;
+    }
+    setLoadingSkills(prev => ({ ...prev, [category]: true }));
+    try {
+      const suggested = await aiService.suggestSkillsForCategory(category, targetRole, existingItems);
+      if (suggested && suggested.length > 0) {
+        // Merge unique skills
+        const combined = [...new Set([...existingItems, ...suggested])];
+        
+        // Update the skills array
+        const updated = skills.map(cat => 
+          cat.category === category ? { ...cat, items: combined } : cat
+        );
+        onChangeSkills(updated);
+        Alert.alert('✨ Skills Suggested!', `Added suggested ${category.toLowerCase()} to your resume.`);
+      } else {
+        Alert.alert('No suggestions', 'AI could not find new suggestions for this category.');
+      }
+    } catch (e: any) {
+      Alert.alert('AI Error', e.message || 'Failed to suggest skills.');
+    } finally {
+      setLoadingSkills(prev => ({ ...prev, [category]: false }));
+    }
+  };
   
   const addEducation = () => {
     onChangeEducation([
@@ -100,8 +133,24 @@ export const EducationSkillsForm: React.FC<Props> = ({
       <Text style={styles.sectionTitle}>Skills</Text>
       {skills.map((skillCat) => (
         <View key={skillCat.category} style={{ marginBottom: 16 }}>
+          <View style={styles.skillHeader}>
+            <Text style={styles.label}>{skillCat.category}</Text>
+            <TouchableOpacity
+              style={styles.aiSuggestBtn}
+              onPress={() => handleSuggestSkills(skillCat.category, skillCat.items)}
+              disabled={loadingSkills[skillCat.category]}
+            >
+              {loadingSkills[skillCat.category] ? (
+                <ActivityIndicator color={theme.colors.primary} size="small" />
+              ) : (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <Ionicons name="sparkles" size={12} color={theme.colors.primary} />
+                  <Text style={styles.aiSuggestBtnText}>AI Suggest</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          </View>
           <Input
-            label={skillCat.category}
             placeholder={`Enter ${skillCat.category.toLowerCase()} separated by commas`}
             value={skillCat.items.join(', ')}
             onChangeText={(text) => updateSkillCategory(skillCat.category, text)}
@@ -115,6 +164,34 @@ export const EducationSkillsForm: React.FC<Props> = ({
 const getStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
+  },
+  label: {
+    fontSize: theme.typography.sizes.caption,
+    color: theme.colors.textSecondary,
+    fontWeight: '600',
+  },
+  skillHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: theme.spacing(1),
+    width: '100%',
+  },
+  aiSuggestBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+    backgroundColor: 'rgba(59, 130, 246, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(59, 130, 246, 0.2)',
+    ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
+  },
+  aiSuggestBtnText: {
+    fontSize: 11,
+    color: theme.colors.primary,
+    fontWeight: 'bold',
   },
   sectionTitle: {
     fontSize: theme.typography.sizes.h2,

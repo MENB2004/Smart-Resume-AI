@@ -1,10 +1,12 @@
+import { Platform } from 'react-native';
+
 export const lightColors = {
-  background: '#F8FAFC', // Light slate
-  surface: '#FFFFFF', // Pure white cards
-  primary: '#4F46E5', // Premium Indigo
-  primaryDark: '#3730A3', // Darker Indigo
-  secondary: '#64748B', // Muted slate
-  secondaryDark: '#475569', 
+  background: '#F8FAFC',
+  surface: '#FFFFFF',
+  primary: '#4F46E5',
+  primaryDark: '#3730A3',
+  secondary: '#64748B',
+  secondaryDark: '#475569',
   accent: '#A5B4FC',
   text: '#0F172A',
   textSecondary: '#64748B',
@@ -15,20 +17,24 @@ export const lightColors = {
 };
 
 export const darkColors = {
-  background: '#000000', // True Black (OLED friendly)
-  surface: '#121212', // Slightly elevated dark grey for cards
-  primary: '#6366F1', // Vibrant Indigo for dark mode
+  background: 'transparent',   // LinearGradient in App.tsx shows through
+  surface: '#07152B',          // deep navy blue cards
+  primary: '#6366F1',          // vibrant indigo
   primaryDark: '#4F46E5',
-  secondary: '#A1A1AA', // Zinc 400
-  secondaryDark: '#71717A', // Zinc 500
+  secondary: '#7B9FC7',
+  secondaryDark: '#5A7FA8',
   accent: '#818CF8',
-  text: '#FAFAFA', // Almost white
-  textSecondary: '#A1A1AA',
-  border: '#27272A', // Zinc 800
+  text: '#EEF2FF',             // blue-white text
+  textSecondary: '#7FA8D0',    // blue-tinted secondary
+  border: '#1A3258',           // blue-tinted border
   error: '#F87171',
   success: '#34D399',
-  glassmorphism: 'rgba(18, 18, 18, 0.7)',
+  glassmorphism: 'rgba(7, 21, 43, 0.85)',
 };
+
+// Gradient arrays for dark/light modes — used in App.tsx ThemedApp
+export const darkGradient = ['#020B18', '#04112A', '#020D20'] as const;
+export const lightGradient = [lightColors.background, lightColors.background] as const;
 
 export const typography = {
   fonts: {
@@ -57,26 +63,35 @@ export const borderRadius = {
 };
 
 export const shadows = {
-  soft: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  medium: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 16,
-    elevation: 8,
-  },
+  soft: Platform.select({
+    web: {
+      boxShadow: '0px 4px 12px rgba(10, 37, 80, 0.25)',
+    },
+    default: {
+      shadowColor: '#0A2550',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.25,
+      shadowRadius: 12,
+      elevation: 4,
+    },
+  }) as any,
+  medium: Platform.select({
+    web: {
+      boxShadow: '0px 8px 16px rgba(10, 37, 80, 0.35)',
+    },
+    default: {
+      shadowColor: '#0A2550',
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.35,
+      shadowRadius: 16,
+      elevation: 8,
+    },
+  }) as any,
 };
 
-// We will keep a default export for backward compatibility where possible,
-// but components should use useTheme() from ThemeContext going forward.
+// Backward-compat default export
 export const theme = {
-  colors: darkColors, // Default to dark colors before Context takes over
+  colors: darkColors,
   typography,
   spacing,
   borderRadius,

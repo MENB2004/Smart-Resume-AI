@@ -3,6 +3,21 @@ export interface Resume {
   title: string;
   lastUpdated: string;
   level: 'fresher' | 'experienced';
+  targetRole?: string;
+  templateId?: 'classic' | 'modern' | 'minimal' | 'student' | 'developer';
+  sectionsOrder?: string[];
+  customSections?: Array<{
+    id: string;
+    title: string;
+    content: string;
+  }>;
+  coursework?: string[];
+  profiles?: Array<{
+    platform: 'GitHub' | 'LinkedIn' | 'LeetCode' | 'HackerRank';
+    username: string;
+    url: string;
+    stats?: string;
+  }>;
   personalInfo: {
     fullName: string;
     email: string;
@@ -38,6 +53,9 @@ export interface Resume {
     title: string;
     description: string;
     techStack: string;
+    technologies?: string;
+    impact?: string;
+    bullets?: string[];
   }>;
   certifications: Array<{
     id: string;

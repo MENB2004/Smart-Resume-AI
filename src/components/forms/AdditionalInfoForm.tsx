@@ -10,9 +10,14 @@ interface Props {
   certifications: Resume['certifications'];
   achievements: Resume['achievements'];
   languages: Resume['languages'];
+  level?: Resume['level'];
+  coursework?: Resume['coursework'];
+  profiles?: Resume['profiles'];
   onChangeCertifications: (data: Resume['certifications']) => void;
   onChangeAchievements: (data: Resume['achievements']) => void;
   onChangeLanguages: (data: Resume['languages']) => void;
+  onChangeCoursework?: (data: Resume['coursework']) => void;
+  onChangeProfiles?: (data: Resume['profiles']) => void;
 }
 
 const POPULAR_LANGUAGES = [
@@ -26,9 +31,14 @@ export const AdditionalInfoForm: React.FC<Props> = ({
   certifications, 
   achievements, 
   languages = [],
+  level,
+  coursework = [],
+  profiles = [],
   onChangeCertifications, 
   onChangeAchievements,
   onChangeLanguages,
+  onChangeCoursework,
+  onChangeProfiles,
 }) => {
   const { theme } = useTheme();
   const styles = getStyles(theme);
@@ -36,6 +46,7 @@ export const AdditionalInfoForm: React.FC<Props> = ({
   const [currentCert, setCurrentCert] = useState('');
   const [currentAchieve, setCurrentAchieve] = useState('');
   const [currentLanguage, setCurrentLanguage] = useState('');
+  const [currentCourse, setCurrentCourse] = useState('');
   const [showLanguageModal, setShowLanguageModal] = useState(false);
 
   const addCert = () => {
@@ -102,8 +113,105 @@ export const AdditionalInfoForm: React.FC<Props> = ({
     onChangeLanguages(languages.filter(l => l !== lang));
   };
 
+  const addCourse = () => {
+    if (currentCourse.trim() && !coursework.includes(currentCourse.trim())) {
+      if (onChangeCoursework) {
+        onChangeCoursework([...coursework, currentCourse.trim()]);
+      }
+      setCurrentCourse('');
+    }
+  };
+
+  const removeCourse = (index: number) => {
+    if (onChangeCoursework) {
+      onChangeCoursework(coursework.filter((_, i) => i !== index));
+    }
+  };
+
+  const getProfileUsername = (platform: 'GitHub' | 'LinkedIn' | 'LeetCode' | 'HackerRank') => {
+    const found = profiles?.find(p => p.platform === platform);
+    return found ? found.username : '';
+  };
+
+  const updateProfile = (platform: 'GitHub' | 'LinkedIn' | 'LeetCode' | 'HackerRank', username: string) => {
+    const activeProfiles = [...(profiles || [])];
+    const index = activeProfiles.findIndex(p => p.platform === platform);
+
+    let url = '';
+    if (platform === 'GitHub') url = `https://github.com/${username}`;
+    else if (platform === 'LinkedIn') url = `https://linkedin.com/in/${username}`;
+    else if (platform === 'LeetCode') url = `https://leetcode.com/${username}`;
+    else if (platform === 'HackerRank') url = `https://hackerrank.com/${username}`;
+
+    if (index >= 0) {
+      if (username.trim() === '') {
+        activeProfiles.splice(index, 1);
+      } else {
+        activeProfiles[index] = { platform, username, url };
+      }
+    } else if (username.trim() !== '') {
+      activeProfiles.push({ platform, username, url });
+    }
+
+    if (onChangeProfiles) {
+      onChangeProfiles(activeProfiles);
+    }
+  };
+
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <Text style={styles.sectionTitle}>Relevant Coursework</Text>
+      <View style={styles.inputRow}>
+        <View style={{ flex: 1, marginRight: theme.spacing(1) }}>
+          <Input
+            placeholder="e.g. Data Structures & Algorithms"
+            value={currentCourse}
+            onChangeText={setCurrentCourse}
+            onSubmitEditing={addCourse}
+          />
+        </View>
+        <Button title="Add" onPress={addCourse} style={styles.addBtn} />
+      </View>
+      <View style={styles.listContainer}>
+        {coursework.map((course, index) => (
+          <View key={index} style={styles.listItem}>
+            <Text style={styles.bullet}>•</Text>
+            <Text style={styles.listText}>{course}</Text>
+            <TouchableOpacity onPress={() => removeCourse(index)} style={styles.removeBtn}>
+              <Text style={styles.removeText}>✕</Text>
+            </TouchableOpacity>
+          </View>
+        ))}
+      </View>
+
+      <View style={styles.divider} />
+
+      <Text style={styles.sectionTitle}>Profile Integrations & Badges</Text>
+      <Text style={styles.helperText}>Input your usernames to import project details or generate verified stats badges.</Text>
+      <Input
+        label="GitHub Username"
+        placeholder="e.g. nived-b"
+        value={getProfileUsername('GitHub')}
+        onChangeText={(text) => updateProfile('GitHub', text)}
+        autoCapitalize="none"
+      />
+      <Input
+        label="LeetCode Username"
+        placeholder="e.g. nived_leetcode"
+        value={getProfileUsername('LeetCode')}
+        onChangeText={(text) => updateProfile('LeetCode', text)}
+        autoCapitalize="none"
+      />
+      <Input
+        label="HackerRank Username"
+        placeholder="e.g. nived_hr"
+        value={getProfileUsername('HackerRank')}
+        onChangeText={(text) => updateProfile('HackerRank', text)}
+        autoCapitalize="none"
+      />
+
+      <View style={styles.divider} />
+
       <Text style={styles.sectionTitle}>Certifications</Text>
       <View style={styles.inputRow}>
         <View style={{ flex: 1, marginRight: theme.spacing(1) }}>
@@ -169,33 +277,37 @@ export const AdditionalInfoForm: React.FC<Props> = ({
         ))}
       </View>
 
-      <View style={styles.divider} />
+      {level !== 'fresher' && (
+        <>
+          <View style={styles.divider} />
 
-      <Text style={styles.sectionTitle}>Languages</Text>
-      
-      <Button 
-        title="+ Select Languages" 
-        onPress={() => setShowLanguageModal(true)} 
-        variant="outline"
-        style={{ marginBottom: theme.spacing(2) }}
-      />
-      
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-        {languages.map(lang => (
-          <TouchableOpacity key={lang} onPress={() => removeLanguage(lang)} style={{
-            backgroundColor: theme.colors.surface,
-            borderColor: theme.colors.primary,
-            borderWidth: 1,
-            paddingHorizontal: theme.spacing(2),
-            paddingVertical: theme.spacing(1),
-            borderRadius: theme.borderRadius.round,
-            marginRight: theme.spacing(1),
-            marginBottom: theme.spacing(1),
-          }}>
-            <Text style={{ color: theme.colors.primary, fontSize: theme.typography.sizes.caption }}>{lang}  ✕</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+          <Text style={styles.sectionTitle}>Languages</Text>
+          
+          <Button 
+            title="+ Select Languages" 
+            onPress={() => setShowLanguageModal(true)} 
+            variant="outline"
+            style={{ marginBottom: theme.spacing(2) }}
+          />
+          
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+            {languages.map(lang => (
+              <TouchableOpacity key={lang} onPress={() => removeLanguage(lang)} style={{
+                backgroundColor: theme.colors.surface,
+                borderColor: theme.colors.primary,
+                borderWidth: 1,
+                paddingHorizontal: theme.spacing(2),
+                paddingVertical: theme.spacing(1),
+                borderRadius: theme.borderRadius.round,
+                marginRight: theme.spacing(1),
+                marginBottom: theme.spacing(1),
+              }}>
+                <Text style={{ color: theme.colors.primary, fontSize: theme.typography.sizes.caption }}>{lang}  ✕</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </>
+      )}
 
       <Modal visible={showLanguageModal} animationType="slide" transparent={true}>
         <View style={styles.modalOverlay}>
@@ -259,6 +371,11 @@ const getStyles = (theme: any) => StyleSheet.create({
     fontSize: theme.typography.sizes.h2,
     color: theme.colors.text,
     fontWeight: 'bold',
+    marginBottom: theme.spacing(2),
+  },
+  helperText: {
+    fontSize: 11,
+    color: theme.colors.textSecondary,
     marginBottom: theme.spacing(2),
   },
   inputRow: {

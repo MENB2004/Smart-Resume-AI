@@ -1,10 +1,11 @@
-import React from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, ScrollView, Platform } from 'react-native';
+import React, { useState } from 'react';
+import { View, StyleSheet, Text, TouchableOpacity, ScrollView, Platform, Alert } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import { Input } from '../Input';
 import { Button } from '../Button';
 import { useTheme } from '../../context/ThemeContext';
 import { Resume } from '../../types/resume';
+import { aiService } from '../../services/aiService';
 
 interface Props {
   experience: Resume['experience'];
@@ -21,6 +22,7 @@ export const ExperienceProjectsForm: React.FC<Props> = ({
 }) => {
   const { theme } = useTheme();
   const styles = getStyles(theme);
+  const [loadingBullets, setLoadingBullets] = useState<Record<string, boolean>>({});
 
   const addExperience = () => {
     onChangeExperience([
@@ -64,11 +66,11 @@ export const ExperienceProjectsForm: React.FC<Props> = ({
   const addProject = () => {
     onChangeProjects([
       ...projects,
-      { id: Date.now().toString(), title: '', description: '', techStack: '' }
+      { id: Date.now().toString(), title: '', description: '', techStack: '', technologies: '', impact: '', bullets: [] }
     ]);
   };
 
-  const updateProject = (id: string, field: string, value: string) => {
+  const updateProject = (id: string, field: string, value: any) => {
     const updated = projects.map(item => 
       item.id === id ? { ...item, [field]: value } : item
     );
@@ -77,6 +79,36 @@ export const ExperienceProjectsForm: React.FC<Props> = ({
 
   const removeProject = (id: string) => {
     onChangeProjects(projects.filter(item => item.id !== id));
+  };
+
+  const synthesizeBullets = async (id: string) => {
+    const proj = projects.find(item => item.id === id);
+    if (!proj) return;
+
+    const title = proj.title || '';
+    const tech = proj.techStack || '';
+    const desc = proj.description || '';
+    const impact = proj.impact || '';
+
+    if (!title || !desc || !tech) {
+      Alert.alert('Incomplete Info', 'Please enter a project title, technologies, and description first so the AI has context.');
+      return;
+    }
+
+    setLoadingBullets(prev => ({ ...prev, [id]: true }));
+    try {
+      const bullets = await aiService.generateBullets(title, desc, tech, impact);
+      if (bullets && bullets.length > 0) {
+        updateProject(id, 'bullets', bullets);
+        Alert.alert('✨ Bullets Synthesized!', 'Gemini has written ATS-friendly bullet points for your project.');
+      } else {
+        Alert.alert('AI Error', 'No bullets returned from Gemini.');
+      }
+    } catch (e: any) {
+      Alert.alert('AI Error', e.message || 'Failed to synthesize bullet points.');
+    } finally {
+      setLoadingBullets(prev => ({ ...prev, [id]: false }));
+    }
   };
 
   return (
@@ -164,20 +196,50 @@ export const ExperienceProjectsForm: React.FC<Props> = ({
             onChangeText={(text) => updateProject(proj.id, 'title', text)}
           />
           <Input
-            label="Tech Stack (comma separated)"
-            placeholder="React Native, Node.js"
+            label="Technologies Used"
+            placeholder="React Native, Node.js, Supabase"
             value={proj.techStack}
-            onChangeText={(text) => updateProject(proj.id, 'techStack', text)}
+            onChangeText={(text) => {
+              updateProject(proj.id, 'techStack', text);
+              updateProject(proj.id, 'technologies', text);
+            }}
           />
           <Input
-            label="Project Description"
-            placeholder="An ATS-friendly resume builder..."
+            label="What did you build? (Core Description)"
+            placeholder="An ATS-friendly resume builder website..."
             value={proj.description}
             onChangeText={(text) => updateProject(proj.id, 'description', text)}
             multiline
-            numberOfLines={3}
-            containerStyle={{ height: 100 }}
+            numberOfLines={2}
+            containerStyle={{ height: 60 }}
           />
+          <Input
+            label="What was the measurable result? (Metrics & Impact)"
+            placeholder="e.g. reducing processing time by 40% or attracting 100+ active users"
+            value={proj.impact || ''}
+            onChangeText={(text) => updateProject(proj.id, 'impact', text)}
+            multiline
+            numberOfLines={2}
+            containerStyle={{ height: 60 }}
+          />
+
+          <Button 
+            title="✨ AI Synthesize Bullet Points" 
+            onPress={() => synthesizeBullets(proj.id)} 
+            variant="outline"
+            isLoading={loadingBullets[proj.id]}
+            style={styles.aiButton}
+            textStyle={styles.aiButtonText}
+          />
+
+          {proj.bullets && proj.bullets.length > 0 && (
+            <View style={styles.bulletsPreview}>
+              <Text style={styles.bulletsPreviewTitle}>Formatted ATS Bullets:</Text>
+              {proj.bullets.map((bullet, i) => (
+                <Text key={i} style={styles.bulletItem}>• {bullet}</Text>
+              ))}
+            </View>
+          )}
         </View>
       ))}
       <Button 
@@ -251,5 +313,33 @@ const getStyles = (theme: any) => StyleSheet.create({
     color: theme.colors.primary,
     fontSize: theme.typography.sizes.body,
     flex: 1,
+  },
+  aiButton: {
+    marginVertical: theme.spacing(1.5),
+    borderColor: theme.colors.primary,
+    backgroundColor: 'rgba(59, 130, 246, 0.05)',
+  },
+  aiButtonText: {
+    color: theme.colors.primary,
+  },
+  bulletsPreview: {
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    padding: theme.spacing(1.5),
+    borderRadius: theme.borderRadius.small,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    marginTop: theme.spacing(1),
+  },
+  bulletsPreviewTitle: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: theme.colors.text,
+    marginBottom: theme.spacing(1),
+  },
+  bulletItem: {
+    fontSize: 12,
+    color: theme.colors.textSecondary,
+    marginBottom: 4,
+    lineHeight: 16,
   }
 });

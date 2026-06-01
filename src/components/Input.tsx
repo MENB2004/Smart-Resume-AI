@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, TextInput, Text, StyleSheet, TextInputProps } from 'react-native';
+import { View, TextInput, Text, StyleSheet, TextInputProps, Platform } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 
 interface InputProps extends TextInputProps {
@@ -39,6 +39,8 @@ export const Input: React.FC<InputProps> = ({
           styles.input,
           isFocused && styles.inputFocused,
           error && styles.inputError,
+          // Remove browser default blue outline on web; we use custom focus border instead
+          Platform.OS === 'web' ? (styles.webInput as any) : null,
           style,
         ]}
         placeholderTextColor={theme.colors.textSecondary}
@@ -51,37 +53,42 @@ export const Input: React.FC<InputProps> = ({
   );
 };
 
-const getStyles = (theme: any) => StyleSheet.create({
-  container: {
-    marginBottom: theme.spacing(2),
-    width: '100%',
-  },
-  label: {
-    fontSize: theme.typography.sizes.caption,
-    color: theme.colors.textSecondary,
-    marginBottom: theme.spacing(1),
-    fontWeight: '600',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    borderRadius: theme.borderRadius.small,
-    padding: theme.spacing(1.5),
-    color: theme.colors.text,
-    fontSize: theme.typography.sizes.body,
-    fontFamily: theme.typography.fonts.regular,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-  },
-  inputFocused: {
-    borderColor: theme.colors.primary,
-    backgroundColor: 'rgba(43, 108, 176, 0.05)',
-  },
-  inputError: {
-    borderColor: theme.colors.error,
-  },
-  errorText: {
-    color: theme.colors.error,
-    fontSize: theme.typography.sizes.small,
-    marginTop: theme.spacing(0.5),
-  },
-});
+const getStyles = (theme: any) =>
+  StyleSheet.create({
+    container: {
+      marginBottom: theme.spacing(2),
+      width: '100%',
+    },
+    label: {
+      fontSize: theme.typography.sizes.caption,
+      color: theme.colors.textSecondary,
+      marginBottom: theme.spacing(1),
+      fontWeight: '600',
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+      borderRadius: theme.borderRadius.small,
+      padding: theme.spacing(1.5),
+      color: theme.colors.text,
+      fontSize: theme.typography.sizes.body,
+      fontFamily: theme.typography.fonts.regular,
+      backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    },
+    inputFocused: {
+      borderColor: theme.colors.primary,
+      backgroundColor: 'rgba(43, 108, 176, 0.05)',
+    },
+    inputError: {
+      borderColor: theme.colors.error,
+    },
+    errorText: {
+      color: theme.colors.error,
+      fontSize: theme.typography.sizes.small,
+      marginTop: theme.spacing(0.5),
+    },
+    // Web: suppress browser default outline (replaced by our custom borderColor focus state)
+    webInput: Platform.OS === 'web'
+      ? ({ outlineStyle: 'none', outlineWidth: 0 } as any)
+      : {},
+  });
